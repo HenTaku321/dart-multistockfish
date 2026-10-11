@@ -770,10 +770,40 @@ DynamicLibrary _openDynamicLibrary(String libName) {
   if (Platform.isMacOS || Platform.isIOS) {
     return DynamicLibrary.process();
   }
-  if (Platform.isAndroid || Platform.isLinux) {
+  if (Platform.isAndroid) {
     return DynamicLibrary.open('lib$libName.so');
   }
+  if (Platform.isLinux) {
+    return DynamicLibrary.open(_linuxLibraryPath(libName));
+  }
   throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
+}
+
+/// The path a flavour's library is opened by on Linux.
+///
+/// A bare soname leaves the search to the dynamic linker, and whether the
+/// bundle's `lib/` is among the places it looks depends on rules that are not
+/// worth relying on: DT_RPATH and DT_RUNPATH are consulted for the object that
+/// called dlopen, which here is not the executable but whatever inside the Dart
+/// or Flutter runtime made the call. Flutter's Linux bundle does put
+/// `$ORIGIN/lib` on the executable, but that is a statement about the
+/// executable, not about its caller.
+///
+/// Naming the file outright removes the question. The library is installed
+/// beside the executable -- `bundle/lib/`, which is where the app's
+/// linux/CMakeLists.txt installs the `<flavour>_bundled_libraries` value each
+/// flavour's linux/CMakeLists.txt sets -- and [Platform.resolvedExecutable]
+/// resolves the symlink a packaged install puts in /usr/bin, so "the directory
+/// the executable is in" is right however the app was started.
+///
+/// Falls back to the bare soname when there is no such file, which is what a
+/// build that installed the library into a system directory instead would
+/// need.
+String _linuxLibraryPath(String libName) {
+  final executableDir = File(Platform.resolvedExecutable).parent.path;
+  final separator = Platform.pathSeparator;
+  final bundled = '$executableDir${separator}lib${separator}lib$libName.so';
+  return File(bundled).existsSync() ? bundled : 'lib$libName.so';
 }
 
 StockfishBindings? _latestBindings;
