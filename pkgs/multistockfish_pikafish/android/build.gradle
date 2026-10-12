@@ -1,0 +1,65 @@
+// The Android Gradle Plugin builds the native code with the Android NDK.
+
+group = "org.lichess.multistockfish_pikafish"
+version = "1.0"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // The Android Gradle Plugin knows how to build native code with the NDK.
+        classpath("com.android.tools.build:gradle:8.7.3")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: "com.android.library"
+
+android {
+    namespace = "org.lichess.multistockfish_pikafish"
+
+    // Bumping the plugin compileSdk version requires all clients of this plugin
+    // to bump the version in their app.
+    compileSdk = 35
+
+    // Use the NDK version
+    // declared in /android/app/build.gradle file of the Flutter project.
+    // Replace it with a version number if this plugin requires a specific NDK version.
+    // (e.g. ndkVersion "23.1.7779620")
+    ndkVersion = android.ndkVersion
+
+    // Invoke the shared CMake build with the Android Gradle Plugin.
+    externalNativeBuild {
+        cmake {
+            path = "CMakeLists.txt"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    defaultConfig {
+        minSdk = 21
+        ndk {
+            // No 32-bit ABI, unlike the three Stockfish flavours. Pikafish's
+            // board is 9x10 and its `Bitboard` is a 128-bit integer
+            // (`using Bitboard = u128`), whose `u128` typedef exists only under
+            // IS_64BIT, so an armeabi-v7a build fails to compile -- there is no
+            // flag that fixes it. A 32-bit device therefore has no Pikafish at
+            // all, and the app's xiangqi screen reports the engine as
+            // unavailable there rather than crashing.
+            abiFilters 'arm64-v8a', 'x86_64'
+        }
+    }
+}

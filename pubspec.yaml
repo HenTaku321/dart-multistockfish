@@ -7,4 +7,5 @@ workspace:
   - pkgs/multistockfish/example
   - pkgs/multistockfish_chess
   - pkgs/multistockfish_light
+  - pkgs/multistockfish_pikafish
   - pkgs/multistockfish_variant

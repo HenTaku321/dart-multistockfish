@@ -1,0 +1,28 @@
+name: multistockfish_pikafish
+description: "Pikafish (xiangqi) C++ library"
+version: 0.1.0
+# This package does not exist upstream, so it names the fork that added it
+# rather than lichess-org/dart-multistockfish. The other three flavour packages
+# are unmodified copies of upstream's and keep upstream's URL.
+repository: https://github.com/HenTaku321/dart-multistockfish.git
+homepage: https://github.com/HenTaku321/dart-multistockfish.git
+
+resolution: workspace
+
+environment:
+  sdk: ^3.7.0
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true
+      linux:
+        ffiPlugin: true
