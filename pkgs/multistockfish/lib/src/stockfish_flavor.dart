@@ -14,4 +14,19 @@ enum StockfishFlavor {
 
   /// Multi-Variant Stockfish using Handcrafted Evaluation for chess and chess variants
   variant,
+
+  /// Pikafish, the xiangqi (Chinese chess) engine.
+  ///
+  /// Not a Stockfish flavour in any meaningful sense: a separate project, a
+  /// separate engine, a separate network format and its own move generation.
+  /// It is here because it is the only engine that plays xiangqi offline, and
+  /// on a phone it has to be linked into the app rather than spawned.
+  ///
+  /// Like [latestNoNNUE] it has no embedded net, so `nnuePath` is required and
+  /// must name a `pikafish.nnue` matching the engine's own version — a mismatch
+  /// is rejected without a diagnostic, at engine startup.
+  ///
+  /// No 32-bit build exists: its `Bitboard` is a 128-bit integer, and the `u128`
+  /// it is typed as exists only under `IS_64BIT`.
+  pikafish,
 }

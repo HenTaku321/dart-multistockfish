@@ -96,7 +96,8 @@ class Stockfish {
     /// Example: '3check', 'crazyhouse', 'atomic', 'kingofthehill', 'antichess', 'horde', 'racingkings'.
     String? variant,
 
-    /// Full path to the net file for NNUE evaluation. Only used for [StockfishFlavor.latestNoNNUE].
+    /// Full path to the net file for NNUE evaluation. Only used for
+    /// [StockfishFlavor.latestNoNNUE] and [StockfishFlavor.pikafish].
     String? nnuePath,
 
     /// Receives every line the engine writes, starting from its first.
@@ -105,6 +106,13 @@ class Stockfish {
     assert(
       flavor != StockfishFlavor.latestNoNNUE || nnuePath != null,
       'NNUE evaluation requires nnuePath',
+    );
+    // Pikafish has no embedded net either, and unlike the Stockfish flavours it
+    // has no fallback: started without one it searches with an unset net and
+    // returns nonsense rather than refusing.
+    assert(
+      flavor != StockfishFlavor.pikafish || nnuePath != null,
+      'Pikafish requires nnuePath: it has no embedded network',
     );
 
     // Claiming the slot before the first await is what makes two concurrent
@@ -326,7 +334,9 @@ class Stockfish {
       stdin = 'setoption name UCI_Variant value $_variant';
     }
 
-    if (_flavor == StockfishFlavor.latestNoNNUE && _nnuePath != null) {
+    if ((_flavor == StockfishFlavor.latestNoNNUE ||
+            _flavor == StockfishFlavor.pikafish) &&
+        _nnuePath != null) {
       stdin = 'setoption name EvalFile value $_nnuePath';
     }
   }
@@ -809,6 +819,7 @@ String _linuxLibraryPath(String libName) {
 StockfishBindings? _latestBindings;
 StockfishBindings? _lightBindings;
 StockfishBindings? _fairyBindings;
+StockfishBindings? _pikafishBindings;
 
 StockfishBindings _getBindings(StockfishFlavor flavor) {
   // Check for zone override (used in tests)
@@ -835,6 +846,12 @@ StockfishBindings _getBindings(StockfishFlavor flavor) {
         symbolPrefix: 'variant',
       );
       return _fairyBindings!;
+    case StockfishFlavor.pikafish:
+      _pikafishBindings ??= StockfishBindingsFFI(
+        _openDynamicLibrary('multistockfish_pikafish'),
+        symbolPrefix: 'pikafish',
+      );
+      return _pikafishBindings!;
   }
 }
 

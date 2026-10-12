@@ -1,7 +1,7 @@
 name: multistockfish
 description:
-  Flutter plugin bundling Stockfish 19 and Fairy-Stockfish chess engines for Android and iOS, to run
-  chess and chess variant analysis in mobile apps.
+  Flutter plugin bundling Stockfish 19, Fairy-Stockfish and Pikafish chess engines for Android, iOS
+  and Linux, to run chess, chess variant and xiangqi analysis in apps.
 version: 0.6.1
 repository: https://github.com/lichess-org/dart-multistockfish.git
 homepage: https://github.com/lichess-org/dart-multistockfish.git
@@ -21,6 +21,7 @@ dependencies:
   multistockfish_light: ^0.1.0
   multistockfish_chess: ^0.6.0
   multistockfish_variant: ^0.4.0
+  multistockfish_pikafish: ^0.1.0
 
 dev_dependencies:
   fake_async: ^1.3.2
@@ -31,3 +32,4 @@ dev_dependencies:
 platforms:
   android:
   ios:
+  linux:
