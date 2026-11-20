@@ -46,7 +46,7 @@ void main() {
         fakeAsync((clock) {
           Object? failure;
           var succeeded = false;
-          engine.dispose().then(
+          engine.dispose().then<void>(
             (_) => succeeded = true,
             onError: (Object error) => failure = error,
           );
