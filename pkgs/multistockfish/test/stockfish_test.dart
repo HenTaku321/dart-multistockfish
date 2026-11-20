@@ -425,8 +425,8 @@ void main() {
           expect(caughtError, isA<TimeoutException>());
           expect(
             Stockfish.debugLiveEngines,
-            isEmpty,
-            reason: 'a failed create must not keep the flavor to itself',
+            isNotEmpty,
+            reason: 'a live native engine still owns its flavor',
           );
 
           controller.exit(0);
@@ -460,7 +460,7 @@ void main() {
           async.elapse(kQuitTimeout);
 
           expect(caughtError, isA<TimeoutException>());
-          expect(Stockfish.debugLiveEngines, isEmpty);
+          expect(Stockfish.debugLiveEngines, isNotEmpty);
         });
       });
     });
@@ -496,26 +496,29 @@ void main() {
       });
     });
 
-    test('a failed start does not leave an engine behind for the next '
-        'one', () async {
-      final controller = MockEngineController()..exitOnQuit();
-
-      await runWithMockStockfish(controller, () {
-        fakeAsync((async) {
+    test(
+      'a failed start releases its slot after native completion arrives',
+      () async {
+        final controller = MockEngineController()..exitOnQuit();
+        await runWithMockStockfish(controller, () async {
           for (var attempt = 0; attempt < 3; attempt++) {
-            Stockfish.create().then<void>((_) {}, onError: (Object _) {});
-            async.flushMicrotasks();
-            async.elapse(
-              kStartTimeout + kQuitTimeout + const Duration(seconds: 1),
-            );
+            fakeAsync((async) {
+              Stockfish.create().then<void>((_) {}, onError: (Object _) {});
+              async.flushMicrotasks();
+              async.elapse(
+                kStartTimeout + kQuitTimeout + const Duration(seconds: 1),
+              );
+            });
+            // ReceivePort messages use the real event queue, not fakeAsync's timers.
+            await pumpEventQueue();
+            expect(Stockfish.debugLiveEngines, isEmpty);
           }
-
           expect(controller.engines, hasLength(3));
           expect(controller.maxLiveEngines, 1);
           expect(controller.liveEngines, 0);
         });
-      });
-    });
+      },
+    );
 
     test(
       'a failed start retains its slot until both native workers exit',
